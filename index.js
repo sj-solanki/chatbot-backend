@@ -1,6 +1,7 @@
 const express = require("express");
 const app = express();
 const axios = require("axios");
+const data = require("./data.json");
 const cors = require("cors");
 app.use(cors());
 
@@ -23,7 +24,30 @@ app.post("/search", async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
+//api to get dummy data.
+//refer data.json file for dummy data
+app.get("/data/:itemId", (req, res) => {
+  const itemId = parseInt(req.params.itemId);
 
+  // Find the item with the specified ID
+  const item = data.items.find((item) => item.id === itemId);
+
+  if (item) {
+    // Prepare response object including item's content, images, videos, and links
+    const responseData = {
+      id: item.id,
+      title: item.title,
+      content: item.content || null,
+      images: item.images || [],
+      videos: item.videos || [],
+      links: item.links || [],
+    };
+
+    res.json(responseData);
+  } else {
+    res.status(404).json({ error: "Item not found" });
+  }
+});
 // Start server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
