@@ -43,6 +43,7 @@ app.post("/search", async (req, res) => {
 });*/
 
 // Route to handle init API
+
 app.post("/init", async (req, res) => {
   const initEndpoint = "https://kahani-api.tekdinext.com/init";
   try {
@@ -52,14 +53,20 @@ app.post("/init", async (req, res) => {
       body: JSON.stringify(req.body),
     });
 
-    const data = await response.json();
+    const text = await response.text(); // Read the response body as text
+    console.log("Response text:", text); // Log the response text for debugging
+
+    if (!text) {
+      throw new Error("Empty response from the init endpoint");
+    }
+
+    const data = JSON.parse(text); // Parse the response text as JSON
     res.json({ status: "success", data: data });
   } catch (error) {
-    console.error(error);
+    console.error("Error:", error);
     res.status(500).json({ status: "error", message: "Internal Server Error" });
   }
 });
-
 /*app.post("/init", async (req, res) => {
   const initInput = req.body;
   console.log("Received data for init:", initInput); // Assuming the frontend sends the entire query as JSON
