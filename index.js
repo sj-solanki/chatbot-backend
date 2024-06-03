@@ -13,13 +13,21 @@ const INIT_ENDPOINT = "https://kahani-api.tekdinext.com/content/init";
 const CONFIRM_ENDPOINT = "https://kahani-api.tekdinext.com/content/confirm";
 
 // Route to handle user queries
+
 app.post("/search", async (req, res) => {
   const userInput = req.body;
   console.log("Received data for search:", userInput); // Assuming the frontend sends the entire query as JSON
 
   try {
-    // Make request to API with userInput in the request body
-    const response = await axios.post(API_ENDPOINT, userInput);
+    // Extract titles from the incoming data
+    const titles = userInput.results
+      .map((item) => item.kahani_cache_dev__title)
+      .join(" ");
+    const transformedData = { title: titles };
+    console.log(transformedData);
+
+    // Make request to API with transformedData in the request body
+    const response = await axios.post(API_ENDPOINT, transformedData);
     res.json(response.data);
   } catch (error) {
     console.error("Error:", error);
@@ -45,25 +53,24 @@ app.post("/search", async (req, res) => {
 // Route to handle init API
 
 app.post("/init", async (req, res) => {
+  console.log("Received request body:", req.body); // Log the received request body
+
   const initEndpoint = "https://kahani-api.tekdinext.com/init";
   try {
-    const response = await fetch(initEndpoint, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(req.body),
+    const response = await axios.post(initEndpoint, req.body, {
+      headers: {
+        "Content-Type": "application/json",
+      },
     });
 
-    const text = await response.text(); // Read the response body as text
-    console.log("Response text:", text); // Log the response text for debugging
+    console.log("Response data:", JSON.stringify(response.data, null, 2)); // Log the response data for debugging
 
-    if (!text) {
-      throw new Error("Empty response from the init endpoint");
-    }
-
-    const data = JSON.parse(text); // Parse the response text as JSON
-    res.json({ status: "success", data: data });
+    res.json(response.data);
   } catch (error) {
-    console.error("Error:", error);
+    console.error(
+      "Error:",
+      error.response ? error.response.data : error.message
+    );
     res.status(500).json({ status: "error", message: "Internal Server Error" });
   }
 });
